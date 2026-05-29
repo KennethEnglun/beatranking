@@ -132,7 +132,7 @@ app.post("/api/scores", requireAdmin, handleSaveScore);
 app.put("/api/scores", requireAdmin, handleSaveScore);
 
 const VISION_API_KEY = process.env.VISION_API_KEY || "";
-const VISION_MODEL = process.env.VISION_MODEL || "MiMo-V2.5";
+const VISION_MODEL = process.env.VISION_MODEL || "z-ai/vision-v2";
 
 app.post("/api/analyze-score-image", requireAdmin, upload.single("image"), async (req, res) => {
   try {
