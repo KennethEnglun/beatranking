@@ -39,10 +39,11 @@ export default function App() {
       <header className="relative z-10 border-b border-cyber-border bg-cyber-card/80 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1
-            className="font-game text-sm sm:text-lg title-glow text-neon-magenta cursor-pointer"
+            className="font-game text-sm sm:text-lg title-glow text-neon-magenta cursor-pointer flex items-center gap-3"
             onClick={() => setView("leaderboard")}
           >
-            🎵 勁Beat大賽排行榜
+            <img src="/logo.png" alt="Logo" className="h-8 sm:h-10 w-auto" />
+            勁Beat大賽排行榜
           </h1>
           <div className="flex gap-2">
             <button
