@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #06060e;
+  color: #e0e0e0;
+  font-family: "Share Tech Mono", monospace;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+@layer utilities {
+  .text-glow-cyan {
+    text-shadow: 0 0 7px #00ffff, 0 0 14px #00ffff, 0 0 28px #00ffff;
+  }
+  .text-glow-magenta {
+    text-shadow: 0 0 7px #ff00ff, 0 0 14px #ff00ff, 0 0 28px #ff00ff;
+  }
+  .text-glow-green {
+    text-shadow: 0 0 7px #39ff14, 0 0 14px #39ff14, 0 0 28px #39ff14;
+  }
+  .text-glow-yellow {
+    text-shadow: 0 0 7px #ffff00, 0 0 14px #ffff00, 0 0 28px #ffff00;
+  }
+  .border-glow-cyan {
+    border-color: #00ffff;
+    box-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, inset 0 0 5px rgba(0, 255, 255, 0.1);
+  }
+  .border-glow-magenta {
+    border-color: #ff00ff;
+    box-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff, inset 0 0 5px rgba(255, 0, 255, 0.1);
+  }
+  .bg-grid {
+    background-image:
+      linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
+@keyframes rainbow-glow {
+  0% { text-shadow: 0 0 7px #ff00ff, 0 0 14px #ff00ff, 0 0 28px #ff00ff; }
+  33% { text-shadow: 0 0 7px #00ffff, 0 0 14px #00ffff, 0 0 28px #00ffff; }
+  66% { text-shadow: 0 0 7px #39ff14, 0 0 14px #39ff14, 0 0 28px #39ff14; }
+  100% { text-shadow: 0 0 7px #ff00ff, 0 0 14px #ff00ff, 0 0 28px #ff00ff; }
+}
+
+.title-glow {
+  animation: rainbow-glow 4s ease-in-out infinite;
+}
+
+@keyframes rank-appear {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.rank-row {
+  animation: rank-appear 0.4s ease-out forwards;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0d0d1f;
+}
+::-webkit-scrollbar-thumb {
+  background: #00ffff;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ff00ff;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
