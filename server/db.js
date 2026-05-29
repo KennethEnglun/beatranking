@@ -31,11 +31,10 @@ db.exec(`
   );
 `);
 
-const hasUniqueIndex = db
-  .prepare(`SELECT name FROM sqlite_master WHERE type='index' AND name LIKE '%player_id%' AND name LIKE '%scores%'`)
-  .get();
+const uniqueIndexes = db.prepare(`PRAGMA index_list('scores')`).all();
+const hasOldUnique = uniqueIndexes.some((idx) => idx.unique === 1);
 
-if (hasUniqueIndex) {
+if (hasOldUnique) {
   db.exec(`
     CREATE TABLE scores_new (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
