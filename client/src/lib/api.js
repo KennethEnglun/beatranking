@@ -80,3 +80,15 @@ export async function checkAuth() {
   const res = await fetch(`${API}/auth/check`);
   return res.json();
 }
+
+export async function analyzeScoreImage(file) {
+  const formData = new FormData();
+  formData.append("image", file);
+  const res = await fetch(`${API}/analyze-score-image`, {
+    method: "POST",
+    body: formData,
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "分析失敗");
+  return data;
+}

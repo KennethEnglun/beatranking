@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { fetchAllPlayers, fetchBestScore, saveScore } from "../lib/api";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { fetchAllPlayers, fetchBestScore, saveScore, analyzeScoreImage } from "../lib/api";
 
 const GRADES = ["1", "2", "3", "4", "5", "6"];
 
@@ -18,6 +18,13 @@ export default function ScoreEntry() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
   const [bestScore, setBestScore] = useState(null);
+
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [aiResult, setAiResult] = useState(null);
+  const cameraInputRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetchAllPlayers().then(setAllPlayers).catch(() => {});
@@ -76,6 +83,41 @@ export default function ScoreEntry() {
     setMaxCombo("");
     setPerfectCount("");
     setBestScore(null);
+    setImageFile(null);
+    setImagePreview(null);
+    setAiResult(null);
+  }
+
+  function handleImageSelect(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setAiResult(null);
+  }
+
+  async function handleAnalyze() {
+    if (!imageFile) return;
+    setAnalyzing(true);
+    setAiResult(null);
+    setMessage(null);
+    try {
+      const result = await analyzeScoreImage(imageFile);
+      setAiResult(result);
+    } catch (err) {
+      setMessage({ type: "error", text: `❌ ${err.message || "分析失敗"}` });
+    } finally {
+      setAnalyzing(false);
+    }
+  }
+
+  function handleFillScores() {
+    if (!aiResult) return;
+    if (aiResult.completion_rate != null) setCompletionRate(String(aiResult.completion_rate));
+    if (aiResult.max_combo != null) setMaxCombo(String(aiResult.max_combo));
+    if (aiResult.perfect_count != null) setPerfectCount(String(aiResult.perfect_count));
+    setMessage({ type: "success", text: "✅ 已填入 AI 分析結果，確認後按儲存" });
+    setTimeout(() => setMessage(null), 2000);
   }
 
   async function handleSubmit(e) {
@@ -213,6 +255,101 @@ export default function ScoreEntry() {
                 Perfect <span className="text-neon-cyan">{bestScore.perfect_count}</span>
               </div>
             )}
+
+            {/* AI 圖片分析區 */}
+            <div className="border border-neon-magenta/20 rounded p-3 bg-neon-magenta/5">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs text-neon-magenta font-game">🤖 AI 截圖分析</span>
+                <span className="text-[10px] text-gray-600">上傳遊戲截圖，AI 自動辨識分數</span>
+              </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageSelect}
+              />
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleImageSelect}
+              />
+
+              <div className="flex gap-2 mb-2">
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="flex-1 py-2 rounded text-[10px] font-game border border-neon-cyan/50 text-neon-cyan
+                    hover:bg-neon-cyan/10 hover:shadow-[0_0_8px_rgba(0,255,255,0.2)]
+                    transition-all duration-300"
+                >
+                  📷 拍照
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 py-2 rounded text-[10px] font-game border border-neon-magenta/50 text-neon-magenta
+                    hover:bg-neon-magenta/10 hover:shadow-[0_0_8px_rgba(255,0,255,0.2)]
+                    transition-all duration-300"
+                >
+                  📁 上傳圖片
+                </button>
+              </div>
+
+              {imagePreview && (
+                <div className="animate-fade-in">
+                  <img
+                    src={imagePreview}
+                    alt="截圖預覽"
+                    className="w-full rounded border border-cyber-border mb-2 max-h-48 object-contain"
+                  />
+                  {!aiResult && (
+                    <button
+                      type="button"
+                      onClick={handleAnalyze}
+                      disabled={analyzing}
+                      className="w-full py-2 rounded text-[10px] font-game border-2 border-neon-yellow text-neon-yellow
+                        bg-neon-yellow/5 hover:bg-neon-yellow/15 hover:shadow-[0_0_15px_rgba(255,255,0,0.3)]
+                        disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300"
+                    >
+                      {analyzing ? "分析中..." : "🤖 分析圖片"}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {aiResult && (
+                <div className="animate-fade-in bg-cyber-bg/50 rounded p-2 border border-neon-green/30">
+                  <div className="text-xs text-gray-400 mb-1">AI 分析結果：</div>
+                  <div className="flex gap-2 text-xs font-mono mb-2">
+                    <span className="text-neon-green">
+                      {aiResult.completion_rate != null ? `${aiResult.completion_rate}%` : "—"}
+                    </span>
+                    <span className="text-gray-600">|</span>
+                    <span className="text-neon-magenta">
+                      連擊 {aiResult.max_combo != null ? aiResult.max_combo : "—"}
+                    </span>
+                    <span className="text-gray-600">|</span>
+                    <span className="text-neon-cyan">
+                      Perfect {aiResult.perfect_count != null ? aiResult.perfect_count : "—"}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleFillScores}
+                    className="w-full py-1.5 rounded text-[10px] font-game border border-neon-green text-neon-green
+                      hover:bg-neon-green/15 hover:shadow-[0_0_10px_rgba(57,255,20,0.3)]
+                      transition-all duration-300"
+                  >
+                    ✅ 填入分數欄位
+                  </button>
+                </div>
+              )}
+            </div>
 
             <div>
               <label className="block text-xs text-gray-400 mb-1.5">完成率 %</label>

@@ -131,6 +131,71 @@ app.get("/api/scores/:playerId/best", (req, res) => {
 app.post("/api/scores", requireAdmin, handleSaveScore);
 app.put("/api/scores", requireAdmin, handleSaveScore);
 
+const VISION_API_KEY = process.env.VISION_API_KEY || "";
+const VISION_MODEL = process.env.VISION_MODEL || "MiMo-V2.5";
+
+app.post("/api/analyze-score-image", requireAdmin, upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "沒有上傳圖片" });
+
+    const imageBuffer = fs.readFileSync(req.file.path);
+    const base64 = imageBuffer.toString("base64");
+    const mimeType = req.file.mimetype || "image/png";
+    fs.unlinkSync(req.file.path);
+
+    const visionResp = await fetch("https://opencode.ai/zen/go/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${VISION_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: VISION_MODEL,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "請分析這張遊戲截圖，提取以下三項數據，嚴格以 JSON 格式回覆，不要任何其他文字：\n{\"completion_rate\": 數字(0-100), \"max_combo\": 數字, \"perfect_count\": 數字}\n無法辨識的值設為 null。",
+              },
+              {
+                type: "image_url",
+                image_url: { url: `data:${mimeType};base64,${base64}` },
+              },
+            ],
+          },
+        ],
+        max_tokens: 200,
+      }),
+    });
+
+    if (!visionResp.ok) {
+      const errText = await visionResp.text();
+      console.error("AI API 錯誤:", errText);
+      return res.status(502).json({ error: "AI 服務暫時不可用，請重試" });
+    }
+
+    const visionData = await visionResp.json();
+    const reply = visionData.choices?.[0]?.message?.content || "";
+
+    const jsonMatch = reply.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return res.status(422).json({ error: "AI 無法從圖片中辨識分數，請確認截圖清晰" });
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]);
+    res.json({
+      completion_rate: parsed.completion_rate ?? null,
+      max_combo: parsed.max_combo ?? null,
+      perfect_count: parsed.perfect_count ?? null,
+    });
+  } catch (err) {
+    console.error("圖片分析錯誤:", err.message);
+    res.status(500).json({ error: "分析失敗：" + err.message });
+  }
+});
+
 function handleSaveScore(req, res) {
   try {
     const { player_id, completion_rate, max_combo, perfect_count } = req.body;
