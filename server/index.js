@@ -132,7 +132,7 @@ app.post("/api/scores", requireAdmin, handleSaveScore);
 app.put("/api/scores", requireAdmin, handleSaveScore);
 
 const VISION_API_KEY = process.env.VISION_API_KEY || "";
-const VISION_MODEL = process.env.VISION_MODEL || "z-ai/vision-v2";
+const VISION_MODEL = process.env.VISION_MODEL || "deepseek-v4-flash";
 
 app.post("/api/analyze-score-image", requireAdmin, upload.single("image"), async (req, res) => {
   try {
@@ -143,7 +143,7 @@ app.post("/api/analyze-score-image", requireAdmin, upload.single("image"), async
     const mimeType = req.file.mimetype || "image/png";
     fs.unlinkSync(req.file.path);
 
-    const visionResp = await fetch("https://opencode.ai/zen/go/v1/chat/completions", {
+    const visionResp = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
