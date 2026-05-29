@@ -64,6 +64,10 @@ export async function adminLogout() {
   await fetch(`${API}/auth/logout`, { method: "POST" });
 }
 
+export function downloadPlayersCsv() {
+  window.open(`${API}/players/export-csv`, "_blank");
+}
+
 export async function checkAuth() {
   const res = await fetch(`${API}/auth/check`);
   return res.json();

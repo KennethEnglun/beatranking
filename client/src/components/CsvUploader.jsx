@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { uploadCsv } from "../lib/api";
+import { uploadCsv, downloadPlayersCsv } from "../lib/api";
 
 export default function CsvUploader() {
   const [file, setFile] = useState(null);
@@ -73,6 +73,16 @@ export default function CsvUploader() {
           disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300"
       >
         {uploading ? "上載中..." : "開始上載"}
+      </button>
+
+      {/* 下載現時 CSV */}
+      <button
+        onClick={downloadPlayersCsv}
+        className="w-full mt-3 py-2.5 rounded font-game text-xs border border-neon-yellow text-neon-yellow
+          bg-neon-yellow/5 hover:bg-neon-yellow/15 hover:shadow-[0_0_15px_rgba(255,255,0,0.3)]
+          transition-all duration-300"
+      >
+        📥 下載現時玩家 CSV
       </button>
 
       {/* 結果提示 */}

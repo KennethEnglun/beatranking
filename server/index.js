@@ -121,6 +121,16 @@ app.put("/api/scores", requireAdmin, (req, res) => {
   res.json({ success: true });
 });
 
+app.get("/api/players/export-csv", requireAdmin, (req, res) => {
+  const players = getAllPlayers.all();
+  const header = "年級,班別,學號,姓名";
+  const rows = players.map((p) => `${p.grade},${p.class},${p.student_number},${p.name}`);
+  const csv = [header, ...rows].join("\n") + "\n";
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", "attachment; filename=players.csv");
+  res.send("\uFEFF" + csv);
+});
+
 app.delete("/api/players/:id", requireAdmin, (req, res) => {
   deletePlayer.run(parseInt(req.params.id));
   res.json({ success: true });
