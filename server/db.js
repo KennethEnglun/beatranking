@@ -106,7 +106,7 @@ function getLeaderboard(group) {
               COALESCE(s.max_combo, 0) AS max_combo,
               COALESCE(s.perfect_count, 0) AS perfect_count
        FROM players p
-       LEFT JOIN scores s ON p.id = s.player_id
+       INNER JOIN scores s ON p.id = s.player_id
           AND s.id = (SELECT s2.id FROM scores s2
                       WHERE s2.player_id = p.id
                       ORDER BY s2.completion_rate DESC, s2.max_combo DESC, s2.perfect_count DESC
