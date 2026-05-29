@@ -32,9 +32,13 @@ app.use(
 );
 
 function requireAdmin(req, res, next) {
-  if (req.session.isAdmin) return next();
-  return res.status(401).json({ error: "Unauthorized" });
+  if (req.session && req.session.isAdmin) return next();
+  return res.status(401).json({ error: "未登入或登入已過期，請重新登入" });
 }
+
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok", db: "connected" });
+});
 
 app.post("/api/auth/login", (req, res) => {
   const { password } = req.body;
@@ -128,16 +132,21 @@ app.post("/api/scores", requireAdmin, handleSaveScore);
 app.put("/api/scores", requireAdmin, handleSaveScore);
 
 function handleSaveScore(req, res) {
-  const { player_id, completion_rate, max_combo, perfect_count } = req.body;
-  if (!player_id) return res.status(400).json({ error: "player_id 為必填項" });
+  try {
+    const { player_id, completion_rate, max_combo, perfect_count } = req.body;
+    if (!player_id) return res.status(400).json({ error: "player_id 為必填項" });
 
-  insertScore.run({
-    player_id: parseInt(player_id),
-    completion_rate: parseFloat(completion_rate) || 0,
-    max_combo: parseInt(max_combo) || 0,
-    perfect_count: parseInt(perfect_count) || 0,
-  });
-  res.json({ success: true });
+    insertScore.run({
+      player_id: parseInt(player_id),
+      completion_rate: parseFloat(completion_rate) || 0,
+      max_combo: parseInt(max_combo) || 0,
+      perfect_count: parseInt(perfect_count) || 0,
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("儲存分數錯誤:", err.message);
+    res.status(500).json({ error: "伺服器錯誤：" + err.message });
+  }
 }
 
 app.get("/api/players/export-csv", requireAdmin, (req, res) => {
@@ -162,6 +171,11 @@ if (fs.existsSync(clientDist)) {
     res.sendFile(path.join(clientDist, "index.html"));
   });
 }
+
+app.use((err, _req, res, _next) => {
+  console.error("未捕獲錯誤:", err.message);
+  res.status(500).json({ error: "伺服器錯誤：" + err.message });
+});
 
 app.listen(PORT, () => {
   console.log(`伺服器運行於 port ${PORT}`);
