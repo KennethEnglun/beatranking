@@ -39,11 +39,10 @@ export default function App() {
       <header className="relative z-10 border-b border-cyber-border bg-cyber-card/80 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1
-            className="font-game text-sm sm:text-lg title-glow text-neon-magenta cursor-pointer flex items-center gap-3"
+            className="font-game text-sm sm:text-lg title-glow text-neon-magenta cursor-pointer"
             onClick={() => setView("leaderboard")}
           >
-            <img src="/logo.png" alt="Logo" className="h-8 sm:h-10 w-auto" />
-            勁Beat大賽排行榜
+            李炳摘星之勁Beat大賽排行榜
           </h1>
           <div className="flex gap-2">
             <button
@@ -105,7 +104,7 @@ export default function App() {
 
       {/* 底部 */}
       <footer className="relative z-10 border-t border-cyber-border py-3 text-center text-gray-600 text-xs">
-        <span className="text-neon-cyan/50">◆</span> 勁Beat大賽排行榜系統 <span className="text-neon-magenta/50">◆</span>
+        <span className="text-neon-cyan/50">◆</span> 李炳摘星之勁Beat大賽排行榜 <span className="text-neon-magenta/50">◆</span>
       </footer>
     </div>
   );
