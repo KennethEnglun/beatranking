@@ -32,9 +32,10 @@ db.exec(`
   );
 `);
 
-const insertPlayer = db.prepare(`
-  INSERT OR IGNORE INTO players (grade, class, student_number, name)
+const upsertPlayer = db.prepare(`
+  INSERT INTO players (grade, class, student_number, name)
   VALUES (@grade, @class, @student_number, @name)
+  ON CONFLICT(grade, class, student_number) DO UPDATE SET name = excluded.name
 `);
 
 const getAllPlayers = db.prepare(`
@@ -109,17 +110,17 @@ function getLeaderboard(group) {
 
 function bulkInsertPlayers(players) {
   const tx = db.transaction((list) => {
-    let count = 0;
+    let processed = 0;
     for (const p of list) {
-      const result = insertPlayer.run({
+      upsertPlayer.run({
         grade: parseInt(p.grade),
         class: p.class,
         student_number: p.student_number,
         name: p.name,
       });
-      if (result.changes > 0) count++;
+      processed++;
     }
-    return count;
+    return { total: list.length, processed };
   });
   return tx(players);
 }

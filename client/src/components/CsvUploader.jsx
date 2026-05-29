@@ -14,9 +14,13 @@ export default function CsvUploader() {
     setResult(null);
     try {
       const res = await uploadCsv(file);
-      setResult({ success: true, count: res.imported });
+      if (res.success) {
+        setResult({ success: true, text: `✅ 成功處理 ${res.processed}/${res.total} 位玩家` });
+      } else {
+        setResult({ success: false, error: res.error || "上載失敗" });
+      }
     } catch (err) {
-      setResult({ success: false, error: err.message });
+      setResult({ success: false, error: "無法連接到伺服器" });
     } finally {
       setUploading(false);
     }
@@ -93,7 +97,7 @@ export default function CsvUploader() {
             : "border-red-500/50 text-red-400 bg-red-900/10"
         }`}>
           {result.success
-            ? `✅ 成功導入 ${result.count} 位玩家`
+            ? result.text
             : `❌ ${result.error}`}
         </div>
       )}

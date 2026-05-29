@@ -80,10 +80,18 @@ app.post("/api/players/upload-csv", requireAdmin, upload.single("file"), (req, r
   fs.createReadStream(req.file.path)
     .pipe(csv())
     .on("data", (row) => {
-      const grade = row["年級"] || row["grade"];
-      const cls = row["班別"] || row["class"];
-      const sn = row["學號"] || row["student_number"];
-      const name = row["姓名"] || row["name"];
+      const keys = Object.keys(row);
+      const getVal = (key) => {
+        const exact = row[key];
+        if (exact !== undefined) return exact;
+        const bomKey = keys.find((k) => k.replace(/^\uFEFF/, "") === key);
+        return bomKey ? row[bomKey] : undefined;
+      };
+
+      const grade = getVal("年級") || getVal("grade");
+      const cls = getVal("班別") || getVal("class");
+      const sn = getVal("學號") || getVal("student_number");
+      const name = getVal("姓名") || getVal("name");
       if (grade && cls && sn && name) {
         players.push({
           grade: parseInt(grade),
@@ -94,9 +102,12 @@ app.post("/api/players/upload-csv", requireAdmin, upload.single("file"), (req, r
       }
     })
     .on("end", () => {
-      const count = bulkInsertPlayers(players);
+      const result = bulkInsertPlayers(players);
       fs.unlinkSync(req.file.path);
-      res.json({ success: true, imported: count });
+      if (result.total === 0) {
+        return res.json({ success: false, error: "CSV 中沒有可識別的玩家資料，請檢查欄位名稱" });
+      }
+      res.json({ success: true, total: result.total, processed: result.processed });
     })
     .on("error", (err) => {
       res.status(500).json({ error: err.message });
