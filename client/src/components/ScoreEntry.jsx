@@ -93,8 +93,8 @@ export default function ScoreEntry() {
       );
       setMessage({ type: "success", text: `✅ ${selectedPlayer.name} 分數已儲存！` });
       clearPlayers();
-    } catch {
-      setMessage({ type: "error", text: "❌ 儲存失敗，請重試" });
+    } catch (err) {
+      setMessage({ type: "error", text: `❌ ${err.message || "儲存失敗，請重試"}` });
     } finally {
       setSaving(false);
       setTimeout(() => setMessage(null), 3000);

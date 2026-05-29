@@ -124,7 +124,10 @@ app.get("/api/scores/:playerId/best", (req, res) => {
   res.json(score || null);
 });
 
-app.post("/api/scores", requireAdmin, (req, res) => {
+app.post("/api/scores", requireAdmin, handleSaveScore);
+app.put("/api/scores", requireAdmin, handleSaveScore);
+
+function handleSaveScore(req, res) {
   const { player_id, completion_rate, max_combo, perfect_count } = req.body;
   if (!player_id) return res.status(400).json({ error: "player_id 為必填項" });
 
@@ -135,7 +138,7 @@ app.post("/api/scores", requireAdmin, (req, res) => {
     perfect_count: parseInt(perfect_count) || 0,
   });
   res.json({ success: true });
-});
+}
 
 app.get("/api/players/export-csv", requireAdmin, (req, res) => {
   const players = getAllPlayers.all();

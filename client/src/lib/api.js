@@ -42,7 +42,9 @@ export async function saveScore(playerId, completionRate, maxCombo, perfectCount
       perfect_count: perfectCount,
     }),
   });
-  return res.json();
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "儲存失敗");
+  return data;
 }
 
 export async function fetchScore(playerId) {
