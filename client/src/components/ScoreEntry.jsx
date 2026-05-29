@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { fetchAllPlayers, fetchScore, saveScore } from "../lib/api";
+import { fetchAllPlayers, fetchBestScore, saveScore } from "../lib/api";
 
 const GRADES = ["1", "2", "3", "4", "5", "6"];
 
@@ -17,6 +17,7 @@ export default function ScoreEntry() {
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
+  const [bestScore, setBestScore] = useState(null);
 
   useEffect(() => {
     fetchAllPlayers().then(setAllPlayers).catch(() => {});
@@ -59,21 +60,10 @@ export default function ScoreEntry() {
       setCls(selectedPlayer.class);
       setStudentNumber(selectedPlayer.student_number);
       setPlayerId(String(selectedPlayer.id));
-      fetchScore(selectedPlayer.id).then((score) => {
-        if (score) {
-          setCompletionRate(String(score.completion_rate));
-          setMaxCombo(String(score.max_combo));
-          setPerfectCount(String(score.perfect_count));
-        } else {
-          setCompletionRate("");
-          setMaxCombo("");
-          setPerfectCount("");
-        }
-      });
+      setBestScore(null);
+      fetchBestScore(selectedPlayer.id).then((score) => setBestScore(score));
     } else {
-      setCompletionRate("");
-      setMaxCombo("");
-      setPerfectCount("");
+      setBestScore(null);
     }
   }, [selectedPlayer]);
 
@@ -85,6 +75,7 @@ export default function ScoreEntry() {
     setCompletionRate("");
     setMaxCombo("");
     setPerfectCount("");
+    setBestScore(null);
   }
 
   async function handleSubmit(e) {
@@ -211,6 +202,17 @@ export default function ScoreEntry() {
                 ✕ 清除
               </button>
             </div>
+
+            {bestScore && (
+              <div className="px-3 py-2 bg-neon-yellow/5 border border-neon-yellow/20 rounded text-xs text-gray-400 animate-fade-in">
+                <span className="text-neon-yellow">最佳記錄參考：</span>
+                完成率 <span className="text-neon-green">{bestScore.completion_rate}%</span>
+                <span className="mx-1.5 text-gray-600">|</span>
+                最大連擊 <span className="text-neon-magenta">{bestScore.max_combo}</span>
+                <span className="mx-1.5 text-gray-600">|</span>
+                Perfect <span className="text-neon-cyan">{bestScore.perfect_count}</span>
+              </div>
+            )}
 
             <div>
               <label className="block text-xs text-gray-400 mb-1.5">完成率 %</label>

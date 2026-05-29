@@ -9,8 +9,8 @@ const {
   getAllPlayers,
   getPlayersByGradeAndClass,
   getPlayersByGrade,
-  upsertScore,
-  getScoreByPlayerId,
+  insertScore,
+  getBestScore,
   deletePlayer,
   bulkInsertPlayers,
 } = require("./db");
@@ -115,15 +115,20 @@ app.post("/api/players/upload-csv", requireAdmin, upload.single("file"), (req, r
 });
 
 app.get("/api/scores/:playerId", (req, res) => {
-  const score = getScoreByPlayerId.get(parseInt(req.params.playerId));
+  const score = getBestScore(parseInt(req.params.playerId));
   res.json(score || null);
 });
 
-app.put("/api/scores", requireAdmin, (req, res) => {
+app.get("/api/scores/:playerId/best", (req, res) => {
+  const score = getBestScore(parseInt(req.params.playerId));
+  res.json(score || null);
+});
+
+app.post("/api/scores", requireAdmin, (req, res) => {
   const { player_id, completion_rate, max_combo, perfect_count } = req.body;
   if (!player_id) return res.status(400).json({ error: "player_id 為必填項" });
 
-  upsertScore.run({
+  insertScore.run({
     player_id: parseInt(player_id),
     completion_rate: parseFloat(completion_rate) || 0,
     max_combo: parseInt(max_combo) || 0,

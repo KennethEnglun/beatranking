@@ -22,15 +22,39 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS scores (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    player_id INTEGER UNIQUE NOT NULL,
+    player_id INTEGER NOT NULL,
     completion_rate REAL NOT NULL DEFAULT 0,
     max_combo INTEGER NOT NULL DEFAULT 0,
     perfect_count INTEGER NOT NULL DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now','localtime')),
-    updated_at TEXT DEFAULT (datetime('now','localtime')),
     FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
   );
 `);
+
+const hasUniqueIndex = db
+  .prepare(`SELECT name FROM sqlite_master WHERE type='index' AND name LIKE '%player_id%' AND name LIKE '%scores%'`)
+  .get();
+
+if (hasUniqueIndex) {
+  db.exec(`
+    CREATE TABLE scores_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      player_id INTEGER NOT NULL,
+      completion_rate REAL NOT NULL DEFAULT 0,
+      max_combo INTEGER NOT NULL DEFAULT 0,
+      perfect_count INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT DEFAULT (datetime('now','localtime')),
+      FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
+    );
+    INSERT INTO scores_new (id, player_id, completion_rate, max_combo, perfect_count, created_at)
+      SELECT id, player_id, completion_rate, max_combo, perfect_count,
+             COALESCE(created_at, datetime('now','localtime'))
+      FROM scores;
+    DROP TABLE scores;
+    ALTER TABLE scores_new RENAME TO scores;
+  `);
+  console.log("已遷移 scores 表：移除 UNIQUE 約束，支援多重記錄");
+}
 
 const upsertPlayer = db.prepare(`
   INSERT INTO players (grade, class, student_number, name)
@@ -50,30 +74,30 @@ const getPlayersByGrade = db.prepare(`
   SELECT * FROM players WHERE grade = ? ORDER BY class, student_number
 `);
 
-const upsertScore = db.prepare(`
+const insertScore = db.prepare(`
   INSERT INTO scores (player_id, completion_rate, max_combo, perfect_count)
   VALUES (@player_id, @completion_rate, @max_combo, @perfect_count)
-  ON CONFLICT(player_id) DO UPDATE SET
-    completion_rate = @completion_rate,
-    max_combo = @max_combo,
-    perfect_count = @perfect_count,
-    updated_at = datetime('now','localtime')
-`);
-
-const getScoreByPlayerId = db.prepare(`
-  SELECT * FROM scores WHERE player_id = ?
 `);
 
 const deletePlayer = db.prepare(`DELETE FROM players WHERE id = ?`);
 
-const countPlayers = db.prepare(`SELECT COUNT(*) as count FROM players`);
+function getBestScore(playerId) {
+  return db
+    .prepare(
+      `SELECT * FROM scores
+       WHERE player_id = ?
+       ORDER BY completion_rate DESC, max_combo DESC, perfect_count DESC
+       LIMIT 1`
+    )
+    .get(playerId) || null;
+}
 
-function buildLeaderboardQuery(group) {
+function getLeaderboard(group) {
   const gradeRanges = { low: [1, 2], mid: [3, 4], high: [5, 6] };
   const grades = gradeRanges[group];
   if (!grades) return [];
 
-  return db
+  const rows = db
     .prepare(
       `SELECT p.id, p.grade, p.class, p.student_number, p.name,
               COALESCE(s.completion_rate, 0) AS completion_rate,
@@ -81,14 +105,15 @@ function buildLeaderboardQuery(group) {
               COALESCE(s.perfect_count, 0) AS perfect_count
        FROM players p
        LEFT JOIN scores s ON p.id = s.player_id
+          AND s.id = (SELECT s2.id FROM scores s2
+                      WHERE s2.player_id = p.id
+                      ORDER BY s2.completion_rate DESC, s2.max_combo DESC, s2.perfect_count DESC
+                      LIMIT 1)
        WHERE p.grade IN (${grades.join(",")})
        ORDER BY completion_rate DESC, max_combo DESC, perfect_count DESC`
     )
     .all();
-}
 
-function getLeaderboard(group) {
-  const rows = buildLeaderboardQuery(group);
   const ranked = [];
   let rank = 0;
   let prev = null;
@@ -129,10 +154,9 @@ module.exports = {
   getAllPlayers,
   getPlayersByGradeAndClass,
   getPlayersByGrade,
-  upsertScore,
-  getScoreByPlayerId,
+  insertScore,
+  getBestScore,
   deletePlayer,
-  countPlayers,
   getLeaderboard,
   bulkInsertPlayers,
 };

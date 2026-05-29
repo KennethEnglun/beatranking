@@ -33,7 +33,7 @@ export async function uploadCsv(file) {
 
 export async function saveScore(playerId, completionRate, maxCombo, perfectCount) {
   const res = await fetch(`${API}/scores`, {
-    method: "PUT",
+    method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       player_id: playerId,
@@ -47,6 +47,12 @@ export async function saveScore(playerId, completionRate, maxCombo, perfectCount
 
 export async function fetchScore(playerId) {
   const res = await fetch(`${API}/scores/${playerId}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function fetchBestScore(playerId) {
+  const res = await fetch(`${API}/scores/${playerId}/best`);
   if (!res.ok) return null;
   return res.json();
 }
