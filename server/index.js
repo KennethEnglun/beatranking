@@ -1,10 +1,14 @@
-const express = require("express");
-const session = require("express-session");
-const multer = require("multer");
-const csv = require("csv-parser");
-const path = require("path");
-const fs = require("fs");
-const {
+import express from "express";
+import session from "express-session";
+import multer from "multer";
+import csv from "csv-parser";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import { createXai } from "@ai-sdk/xai";
+import { generateObject } from "ai";
+import { z } from "zod";
+import {
   getLeaderboard,
   getAllPlayers,
   getPlayersByGradeAndClass,
@@ -13,11 +17,15 @@ const {
   getBestScore,
   deletePlayer,
   bulkInsertPlayers,
-} = require("./db");
+} from "./db.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+
+const xai = createXai({ apiKey: process.env.XAI_API_KEY });
 
 const upload = multer({ dest: path.join(__dirname, "uploads") });
 
@@ -131,64 +139,40 @@ app.get("/api/scores/:playerId/best", (req, res) => {
 app.post("/api/scores", requireAdmin, handleSaveScore);
 app.put("/api/scores", requireAdmin, handleSaveScore);
 
-const VISION_API_KEY = process.env.VISION_API_KEY || "";
-const VISION_MODEL = process.env.VISION_MODEL || "deepseek-v4-flash";
+const ScoreSchema = z.object({
+  completion_rate: z.number().nullable().describe("完成率%，0-100數字"),
+  max_combo: z.number().nullable().describe("最大連擊數"),
+  perfect_count: z.number().nullable().describe("Perfect數量"),
+});
 
 app.post("/api/analyze-score-image", requireAdmin, upload.single("image"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "沒有上傳圖片" });
 
     const imageBuffer = fs.readFileSync(req.file.path);
-    const base64 = imageBuffer.toString("base64");
-    const mimeType = req.file.mimetype || "image/png";
     fs.unlinkSync(req.file.path);
 
-    const visionResp = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${VISION_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: VISION_MODEL,
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: "請分析這張遊戲截圖，提取以下三項數據，嚴格以 JSON 格式回覆，不要任何其他文字：\n{\"completion_rate\": 數字(0-100), \"max_combo\": 數字, \"perfect_count\": 數字}\n無法辨識的值設為 null。",
-              },
-              {
-                type: "image_url",
-                image_url: { url: `data:${mimeType};base64,${base64}` },
-              },
-            ],
-          },
-        ],
-        max_tokens: 200,
-      }),
+    const { object } = await generateObject({
+      model: xai("grok-4.3"),
+      schema: ScoreSchema,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: "分析這張遊戲截圖，提取三項數據：完成率%(completion_rate, 0-100數字)、最大連擊(max_combo, 數字)、Perfect數量(perfect_count, 數字)。無法辨識的值設為 null。",
+            },
+            { type: "image", image: imageBuffer },
+          ],
+        },
+      ],
     });
 
-    if (!visionResp.ok) {
-      const errText = await visionResp.text();
-      console.error("AI API 錯誤:", errText);
-      return res.status(502).json({ error: "AI 服務暫時不可用，請重試" });
-    }
-
-    const visionData = await visionResp.json();
-    const reply = visionData.choices?.[0]?.message?.content || "";
-
-    const jsonMatch = reply.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      return res.status(422).json({ error: "AI 無法從圖片中辨識分數，請確認截圖清晰" });
-    }
-
-    const parsed = JSON.parse(jsonMatch[0]);
     res.json({
-      completion_rate: parsed.completion_rate ?? null,
-      max_combo: parsed.max_combo ?? null,
-      perfect_count: parsed.perfect_count ?? null,
+      completion_rate: object.completion_rate,
+      max_combo: object.max_combo,
+      perfect_count: object.perfect_count,
     });
   } catch (err) {
     console.error("圖片分析錯誤:", err.message);
@@ -218,10 +202,10 @@ app.get("/api/players/export-csv", requireAdmin, (req, res) => {
   const players = getAllPlayers.all();
   const header = "年級,班別,學號,姓名";
   const rows = players.map((p) => `${p.grade},${p.class},${p.student_number},${p.name}`);
-  const csv = [header, ...rows].join("\n") + "\n";
+  const payload = [header, ...rows].join("\n") + "\n";
   res.setHeader("Content-Type", "text/csv; charset=utf-8");
   res.setHeader("Content-Disposition", "attachment; filename=players.csv");
-  res.send("\uFEFF" + csv);
+  res.send("\uFEFF" + payload);
 });
 
 app.delete("/api/players/:id", requireAdmin, (req, res) => {
