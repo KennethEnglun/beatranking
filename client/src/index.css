@@ -29,20 +29,6 @@ body {
   .text-glow-yellow {
     text-shadow: 0 0 7px #ffff00, 0 0 14px #ffff00, 0 0 28px #ffff00;
   }
-  .border-glow-cyan {
-    border-color: #00ffff;
-    box-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff, inset 0 0 5px rgba(0, 255, 255, 0.1);
-  }
-  .border-glow-magenta {
-    border-color: #ff00ff;
-    box-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff, inset 0 0 5px rgba(255, 0, 255, 0.1);
-  }
-  .bg-grid {
-    background-image:
-      linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-  }
 }
 
 @keyframes rainbow-glow {
@@ -54,15 +40,6 @@ body {
 
 .title-glow {
   animation: rainbow-glow 4s ease-in-out infinite;
-}
-
-@keyframes rank-appear {
-  from { opacity: 0; transform: translateX(-30px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-.rank-row {
-  animation: rank-appear 0.4s ease-out forwards;
 }
 
 ::-webkit-scrollbar {
