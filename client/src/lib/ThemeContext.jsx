@@ -37,15 +37,38 @@ export const themes = {
     font: '"M PLUS Rounded 1c", sans-serif',
     titleFont: '"M PLUS Rounded 1c", "Press Start 2P", sans-serif',
   },
+  pokemon: {
+    name: "Pokemon",
+    bg: "#0f0f23",
+    card: "rgba(28,28,58,0.9)",
+    border: "#FFCB05",
+    primary: "#FFCB05",
+    secondary: "#E3350D",
+    accent: "#2A75BB",
+    yellow: "#FFCB05",
+    text: "#f8f8f8",
+    muted: "#aab8c8",
+    headerBg: "rgba(15,15,35,0.9)",
+    inputBg: "#12122a",
+    particles: ["#FFCB05", "#E3350D", "#2A75BB", "#ffffff"],
+    borderRadius: "10px",
+    font: '"Fredoka", sans-serif',
+    titleFont: '"Fredoka", "Press Start 2P", sans-serif',
+  },
 };
 
 const ThemeContext = createContext(null);
+
+const themeOrder = ["cyberpunk", "miku", "pokemon"];
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState("cyberpunk");
 
   const toggle = useCallback(() => {
-    setTheme((prev) => (prev === "cyberpunk" ? "miku" : "cyberpunk"));
+    setTheme((prev) => {
+      const idx = themeOrder.indexOf(prev);
+      return themeOrder[(idx + 1) % themeOrder.length];
+    });
   }, []);
 
   const t = themes[theme];

@@ -83,7 +83,7 @@ export default function AnimatedBackground() {
         animationId = requestAnimationFrame(draw);
       }
       draw();
-    } else {
+    } else if (theme === "miku") {
       // Miku 風格：粉紅花瓣 + 音樂符號
       const petals = [];
       for (let i = 0; i < 35; i++) {
@@ -162,6 +162,182 @@ export default function AnimatedBackground() {
         animationId = requestAnimationFrame(drawMiku);
       }
       drawMiku();
+    } else {
+      // Pokemon 風格：掉落精靈球 + 浮動星星 + 閃電
+      const pokeballs = [];
+      for (let i = 0; i < 15; i++) {
+        pokeballs.push({
+          x: Math.random() * canvas.width,
+          y: -50 - Math.random() * 200,
+          size: 6 + Math.random() * 10,
+          vx: (Math.random() - 0.5) * 0.2,
+          vy: 0.3 + Math.random() * 0.6,
+          rotation: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.02,
+          alpha: 0.08 + Math.random() * 0.12,
+        });
+      }
+
+      const stars = [];
+      for (let i = 0; i < 25; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: 2 + Math.random() * 4,
+          vy: -0.15 - Math.random() * 0.4,
+          vx: (Math.random() - 0.5) * 0.2,
+          twinkle: Math.random() * Math.PI * 2,
+          alpha: 0.15 + Math.random() * 0.35,
+        });
+      }
+
+      let lightning = null;
+      let lightningTimer = 0;
+
+      let frame = 0;
+      function drawPokemon() {
+        frame++;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 精靈球
+        pokeballs.forEach((b) => {
+          b.y += b.vy;
+          b.x += b.vx;
+          b.rotation += b.rotSpeed;
+          if (b.y > canvas.height + 30) {
+            b.y = -30 - Math.random() * 100;
+            b.x = Math.random() * canvas.width;
+          }
+          if (b.x < -20) b.x = canvas.width + 10;
+          if (b.x > canvas.width + 20) b.x = -10;
+
+          ctx.save();
+          ctx.translate(b.x, b.y);
+          ctx.rotate(b.rotation);
+          ctx.globalAlpha = b.alpha;
+
+          // 上半紅
+          ctx.beginPath();
+          ctx.arc(0, 0, b.size, Math.PI, 0);
+          ctx.fillStyle = "#E3350D";
+          ctx.fill();
+
+          // 下半白
+          ctx.beginPath();
+          ctx.arc(0, 0, b.size, 0, Math.PI);
+          ctx.fillStyle = "#ffffff";
+          ctx.fill();
+
+          // 中間線
+          ctx.beginPath();
+          ctx.moveTo(-b.size, 0);
+          ctx.lineTo(b.size, 0);
+          ctx.strokeStyle = "#333";
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+
+          // 中間掣
+          ctx.beginPath();
+          ctx.arc(0, 0, b.size * 0.28, 0, Math.PI * 2);
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeStyle = "#333";
+          ctx.lineWidth = 1;
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.globalAlpha = 1;
+          ctx.restore();
+        });
+
+        // 浮動星星
+        stars.forEach((s) => {
+          s.y += s.vy;
+          s.x += s.vx + Math.sin(frame * 0.02 + s.twinkle) * 0.15;
+          if (s.y < -20) { s.y = canvas.height + 20; s.x = Math.random() * canvas.width; }
+          if (s.x < -20) s.x = canvas.width + 10;
+          if (s.x > canvas.width + 20) s.x = -10;
+
+          const twinkleAlpha = s.alpha * (0.5 + 0.5 * Math.sin(frame * 0.06 + s.twinkle));
+          ctx.globalAlpha = twinkleAlpha;
+
+          // 畫星星
+          ctx.save();
+          ctx.translate(s.x, s.y);
+          ctx.beginPath();
+          for (let i = 0; i < 5; i++) {
+            const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+            const r = i % 2 === 0 ? s.size : s.size * 0.45;
+            ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+          }
+          ctx.closePath();
+          ctx.fillStyle = "#FFCB05";
+          ctx.shadowBlur = 6;
+          ctx.shadowColor = "#FFCB05";
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.restore();
+          ctx.globalAlpha = 1;
+        });
+
+        // 閃電特效（隨機觸發）
+        if (!lightning && Math.random() < 0.008) {
+          lightning = {
+            x: Math.random() * canvas.width,
+            y: 0,
+            alpha: 0.8,
+            segments: [],
+          };
+          let lx = lightning.x, ly = 0;
+          const len = 4 + Math.floor(Math.random() * 6);
+          for (let i = 0; i < len; i++) {
+            lx += (Math.random() - 0.5) * 40;
+            ly += 20 + Math.random() * 30;
+            lightning.segments.push({ x: lx, y: ly });
+          }
+          lightningTimer = 6;
+        }
+
+        if (lightning) {
+          ctx.globalAlpha = lightning.alpha;
+          ctx.strokeStyle = "#FFCB05";
+          ctx.lineWidth = 2;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = "#FFCB05";
+
+          ctx.beginPath();
+          ctx.moveTo(lightning.x, 0);
+          lightning.segments.forEach((seg) => ctx.lineTo(seg.x, seg.y));
+          ctx.stroke();
+
+          // 發光粒子
+          ctx.beginPath();
+          const last = lightning.segments[lightning.segments.length - 1];
+          ctx.arc(last.x, last.y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = "#FFCB05";
+          ctx.fill();
+
+          ctx.shadowBlur = 0;
+          ctx.globalAlpha = 1;
+          lightningTimer--;
+          if (lightningTimer <= 0) lightning = null;
+        }
+
+        // 底部草地波浪
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          const baseY = canvas.height - 10 - i * 8;
+          ctx.moveTo(0, baseY);
+          for (let x = 0; x < canvas.width; x += 8) {
+            ctx.lineTo(x, baseY + Math.sin(x * 0.03 + frame * 0.015 + i) * 3);
+          }
+          ctx.strokeStyle = `rgba(42,117,187,${0.06 - i * 0.015})`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        animationId = requestAnimationFrame(drawPokemon);
+      }
+      drawPokemon();
     }
 
     return () => {
@@ -177,9 +353,11 @@ export default function AnimatedBackground() {
         <div
           className="absolute inset-0"
           style={{
-            opacity: theme === "miku" ? 0.015 : 0.025,
+            opacity: theme === "miku" ? 0.015 : theme === "pokemon" ? 0.012 : 0.025,
             background: theme === "miku"
               ? "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(57,197,187,0.05) 3px, rgba(57,197,187,0.05) 6px)"
+              : theme === "pokemon"
+              ? "repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(255,203,5,0.04) 4px, rgba(255,203,5,0.04) 8px)"
               : "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,255,0.08) 2px, rgba(0,255,255,0.08) 4px)",
           }}
         />
@@ -187,6 +365,12 @@ export default function AnimatedBackground() {
           <div
             className="absolute inset-0"
             style={{ opacity: 0.02, background: "radial-gradient(ellipse at 30% 20%, rgba(255,105,180,0.1) 0%, transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(57,197,187,0.08) 0%, transparent 60%)" }}
+          />
+        )}
+        {theme === "pokemon" && (
+          <div
+            className="absolute inset-0"
+            style={{ opacity: 0.025, background: "radial-gradient(ellipse at 50% 30%, rgba(255,203,5,0.06) 0%, transparent 70%), radial-gradient(ellipse at 20% 70%, rgba(227,53,13,0.04) 0%, transparent 60%)" }}
           />
         )}
       </div>

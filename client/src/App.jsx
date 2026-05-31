@@ -124,11 +124,11 @@ export default function App() {
         style={{ borderTop: `1px solid ${t.border}`, color: t.muted }}
       >
         <motion.span animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 3 }} style={{ color: t.primary }}>
-          {theme === "miku" ? "♪" : "◆"}
+          {theme === "miku" ? "♪" : theme === "pokemon" ? "⚡" : "◆"}
         </motion.span>
         {" "}李炳摘星之勁Beat大賽排行榜{" "}
         <motion.span animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 3, delay: 1 }} style={{ color: t.secondary }}>
-          {theme === "miku" ? "♫" : "◆"}
+          {theme === "miku" ? "♫" : theme === "pokemon" ? "🔴" : "◆"}
         </motion.span>
       </motion.footer>
     </div>
@@ -136,6 +136,10 @@ export default function App() {
 }
 
 function ThemeToggleBtn({ theme, onToggle, t }) {
+  const icons = { cyberpunk: "🌸", miku: "🎤", pokemon: "⚡" };
+  const labels = { cyberpunk: "螢光彩", miku: "初音", pokemon: "Pokemon" };
+  const colorMap = { miku: "#39c5bb", pokemon: "#FFCB05" };
+  const isSpecial = theme !== "cyberpunk";
   return (
     <motion.button
       whileHover={{ scale: 1.1, rotate: 15 }}
@@ -143,15 +147,15 @@ function ThemeToggleBtn({ theme, onToggle, t }) {
       onClick={onToggle}
       className="px-2 py-1.5 rounded text-xs border transition-colors font-game"
       style={{
-        borderColor: theme === "miku" ? "#39c5bb" : t.border,
-        color: theme === "miku" ? "#39c5bb" : t.muted,
-        background: theme === "miku" ? "rgba(57,197,187,0.08)" : "transparent",
+        borderColor: isSpecial ? colorMap[theme] : t.border,
+        color: isSpecial ? colorMap[theme] : t.muted,
+        background: isSpecial ? `${colorMap[theme]}10` : "transparent",
         borderRadius: t.borderRadius,
-        boxShadow: theme === "miku" ? "0 0 10px rgba(57,197,187,0.2)" : "none",
+        boxShadow: isSpecial ? `0 0 10px ${colorMap[theme]}20` : "none",
       }}
-      title={theme === "cyberpunk" ? "切換到初音風格" : "切換到螢光風格"}
+      title={`目前：${labels[theme]} — 點擊切換`}
     >
-      {theme === "cyberpunk" ? "🌸" : "💜"}
+      {icons[theme]}
     </motion.button>
   );
 }

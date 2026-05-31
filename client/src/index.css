@@ -25,6 +25,11 @@ body {
   font-family: "M PLUS Rounded 1c", sans-serif;
 }
 
+[data-theme="pokemon"] body {
+  background: #0f0f23;
+  font-family: "Fredoka", sans-serif;
+}
+
 @layer utilities {
   .text-glow-cyan {
     text-shadow: 0 0 7px #00ffff, 0 0 14px #00ffff, 0 0 28px #00ffff;
@@ -53,6 +58,19 @@ body {
   text-shadow: 0 0 7px #ffb6c1, 0 0 14px #ffb6c1, 0 0 28px #ffb6c1;
 }
 
+[data-theme="pokemon"] .text-glow-cyan {
+  text-shadow: 0 0 7px #2A75BB, 0 0 14px #2A75BB, 0 0 28px #2A75BB;
+}
+[data-theme="pokemon"] .text-glow-magenta {
+  text-shadow: 0 0 7px #E3350D, 0 0 14px #E3350D, 0 0 28px #E3350D;
+}
+[data-theme="pokemon"] .text-glow-green {
+  text-shadow: 0 0 7px #FFCB05, 0 0 14px #FFCB05, 0 0 28px #FFCB05;
+}
+[data-theme="pokemon"] .text-glow-yellow {
+  text-shadow: 0 0 7px #FFCB05, 0 0 14px #FFCB05, 0 0 28px #FFCB05;
+}
+
 @keyframes rainbow-glow {
   0% { text-shadow: 0 0 7px #ff00ff, 0 0 14px #ff00ff, 0 0 28px #ff00ff; }
   33% { text-shadow: 0 0 7px #00ffff, 0 0 14px #00ffff, 0 0 28px #00ffff; }
@@ -73,6 +91,16 @@ body {
 
 .title-glow {
   animation: rainbow-glow 4s ease-in-out infinite;
+}
+
+[data-theme="pokemon"] .title-glow {
+  animation: pokemon-glow 3s ease-in-out infinite;
+}
+
+@keyframes pokemon-glow {
+  0% { text-shadow: 0 0 7px #FFCB05, 0 0 14px #FFCB05, 0 0 28px #FFCB05; }
+  50% { text-shadow: 0 0 7px #E3350D, 0 0 14px #E3350D, 0 0 28px #E3350D; }
+  100% { text-shadow: 0 0 7px #FFCB05, 0 0 14px #FFCB05, 0 0 28px #FFCB05; }
 }
 
 ::-webkit-scrollbar {
@@ -97,6 +125,17 @@ body {
 }
 [data-theme="miku"] ::-webkit-scrollbar-thumb:hover {
   background: #ff69b4;
+}
+
+[data-theme="pokemon"] ::-webkit-scrollbar-track {
+  background: #12122a;
+}
+[data-theme="pokemon"] ::-webkit-scrollbar-thumb {
+  background: #FFCB05;
+  border-radius: 8px;
+}
+[data-theme="pokemon"] ::-webkit-scrollbar-thumb:hover {
+  background: #E3350D;
 }
 
 input[type="number"]::-webkit-inner-spin-button,
