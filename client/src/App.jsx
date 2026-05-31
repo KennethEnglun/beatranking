@@ -4,6 +4,7 @@ import Leaderboard from "./components/Leaderboard";
 import AdminLogin from "./components/AdminLogin";
 import AdminPanel from "./components/AdminPanel";
 import AnimatedBackground from "./components/AnimatedBackground";
+import ColorfulText from "./components/ColorfulText";
 import { checkAuth, adminLogout } from "./lib/api";
 
 const pageVariants = {
@@ -61,10 +62,10 @@ export default function App() {
           <motion.h1
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            className="font-game text-sm sm:text-lg title-glow text-neon-magenta cursor-pointer"
+            className="font-game text-sm sm:text-lg cursor-pointer"
             onClick={() => setView("leaderboard")}
           >
-            李炳摘星之勁Beat大賽排行榜
+            <ColorfulText text="李炳摘星之勁Beat大賽排行榜" />
           </motion.h1>
           <div className="flex gap-2">
             <NavBtn active={view === "leaderboard"} color="cyan" onClick={() => setView("leaderboard")}>
