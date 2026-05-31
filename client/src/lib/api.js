@@ -92,3 +92,59 @@ export async function analyzeScoreImage(file) {
   if (!res.ok) throw new Error(data.error || "分析失敗");
   return data;
 }
+
+export async function deleteAllScores() {
+  const res = await fetch(`${API}/scores/all`, { method: "DELETE" });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "刪除失敗");
+  return data;
+}
+
+export async function deleteAllPlayers() {
+  const res = await fetch(`${API}/players/all`, { method: "DELETE" });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "刪除失敗");
+  return data;
+}
+
+export async function deletePlayer(id) {
+  const res = await fetch(`${API}/players/${id}`, { method: "DELETE" });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "刪除失敗");
+  return data;
+}
+
+export async function deleteScore(id) {
+  const res = await fetch(`${API}/scores/${id}`, { method: "DELETE" });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "刪除失敗");
+  return data;
+}
+
+export async function updatePlayer(id, data) {
+  const res = await fetch(`${API}/players/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const resp = await res.json();
+  if (!res.ok) throw new Error(resp.error || "更新失敗");
+  return resp;
+}
+
+export async function updateScoreRecord(id, data) {
+  const res = await fetch(`${API}/scores/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const resp = await res.json();
+  if (!res.ok) throw new Error(resp.error || "更新失敗");
+  return resp;
+}
+
+export async function fetchAllScores() {
+  const res = await fetch(`${API}/scores/all`);
+  if (!res.ok) throw new Error("Failed to fetch scores");
+  return res.json();
+}

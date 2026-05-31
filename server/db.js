@@ -82,6 +82,30 @@ const insertScore = db.prepare(`
 `);
 
 const deletePlayer = db.prepare(`DELETE FROM players WHERE id = ?`);
+const deleteScore = db.prepare(`DELETE FROM scores WHERE id = ?`);
+
+const deleteAllScores = db.prepare(`DELETE FROM scores`);
+const deleteAllPlayers = db.prepare(`DELETE FROM players`);
+
+const updatePlayer = db.prepare(`
+  UPDATE players SET grade = @grade, class = @class, student_number = @student_number, name = @name
+  WHERE id = @id
+`);
+
+const updateScore = db.prepare(`
+  UPDATE scores SET completion_rate = @completion_rate, max_combo = @max_combo, perfect_count = @perfect_count
+  WHERE id = @id
+`);
+
+function getAllScores() {
+  return db.prepare(`
+    SELECT s.id, s.player_id, s.completion_rate, s.max_combo, s.perfect_count, s.created_at,
+           p.name, p.grade, p.class, p.student_number
+    FROM scores s
+    JOIN players p ON s.player_id = p.id
+    ORDER BY s.created_at DESC
+  `).all();
+}
 
 function getBestScore(playerId) {
   return db
@@ -157,8 +181,14 @@ export {
   getPlayersByGradeAndClass,
   getPlayersByGrade,
   insertScore,
+  updateScore,
   getBestScore,
+  getAllScores,
   deletePlayer,
+  deleteScore,
+  deleteAllScores,
+  deleteAllPlayers,
+  updatePlayer,
   getLeaderboard,
   bulkInsertPlayers,
 };

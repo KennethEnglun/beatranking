@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CsvUploader from "./CsvUploader";
 import ScoreEntry from "./ScoreEntry";
+import DataManager from "./DataManager";
 import { useTheme } from "../lib/ThemeContext";
 
 const tabContentVariants = {
@@ -17,6 +18,7 @@ export default function AdminPanel({ onLogout }) {
   const tabs = [
     { key: "scores", label: "輸入分數", color: t.secondary },
     { key: "upload", label: "上載CSV", color: t.primary },
+    { key: "data", label: "數據管理", color: t.yellow },
   ];
 
   return (
@@ -24,7 +26,7 @@ export default function AdminPanel({ onLogout }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="max-w-3xl mx-auto px-4 py-6"
+      className="max-w-4xl mx-auto px-4 py-6"
     >
       <div className="text-center mb-6">
         <motion.h2
@@ -72,6 +74,7 @@ export default function AdminPanel({ onLogout }) {
           >
             {tab === "scores" && <ScoreEntry />}
             {tab === "upload" && <CsvUploader />}
+            {tab === "data" && <DataManager />}
           </motion.div>
         </AnimatePresence>
       </div>

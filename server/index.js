@@ -14,8 +14,14 @@ import {
   getPlayersByGradeAndClass,
   getPlayersByGrade,
   insertScore,
+  updateScore,
   getBestScore,
+  getAllScores,
   deletePlayer,
+  deleteScore,
+  deleteAllScores,
+  deleteAllPlayers,
+  updatePlayer,
   bulkInsertPlayers,
 } from "./db.js";
 
@@ -126,6 +132,10 @@ app.post("/api/players/upload-csv", requireAdmin, upload.single("file"), (req, r
     });
 });
 
+app.get("/api/scores/all", requireAdmin, (req, res) => {
+  res.json(getAllScores());
+});
+
 app.get("/api/scores/:playerId", (req, res) => {
   const score = getBestScore(parseInt(req.params.playerId));
   res.json(score || null);
@@ -148,10 +158,8 @@ const ScoreSchema = z.object({
 app.post("/api/analyze-score-image", requireAdmin, upload.single("image"), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: "沒有上傳圖片" });
-
     const imageBuffer = fs.readFileSync(req.file.path);
     fs.unlinkSync(req.file.path);
-
     const { object } = await generateObject({
       model: xai("grok-4.3"),
       schema: ScoreSchema,
@@ -159,16 +167,12 @@ app.post("/api/analyze-score-image", requireAdmin, upload.single("image"), async
         {
           role: "user",
           content: [
-            {
-              type: "text",
-              text: "分析這張遊戲截圖，提取三項數據：完成率%(completion_rate, 0-100數字)、最大連擊(max_combo, 數字)、Perfect數量(perfect_count, 數字)。無法辨識的值設為 null。",
-            },
+            { type: "text", text: "分析這張遊戲截圖，提取三項數據：完成率%(completion_rate, 0-100數字)、最大連擊(max_combo, 數字)、Perfect數量(perfect_count, 數字)。無法辨識的值設為 null。" },
             { type: "image", image: imageBuffer },
           ],
         },
       ],
     });
-
     res.json({
       completion_rate: object.completion_rate,
       max_combo: object.max_combo,
@@ -184,7 +188,6 @@ function handleSaveScore(req, res) {
   try {
     const { player_id, completion_rate, max_combo, perfect_count } = req.body;
     if (!player_id) return res.status(400).json({ error: "player_id 為必填項" });
-
     insertScore.run({
       player_id: parseInt(player_id),
       completion_rate: parseFloat(completion_rate) || 0,
@@ -211,6 +214,55 @@ app.get("/api/players/export-csv", requireAdmin, (req, res) => {
 app.delete("/api/players/:id", requireAdmin, (req, res) => {
   deletePlayer.run(parseInt(req.params.id));
   res.json({ success: true });
+});
+
+app.delete("/api/scores/all", requireAdmin, (req, res) => {
+  deleteAllScores.run();
+  res.json({ success: true });
+});
+
+app.delete("/api/scores/:id", requireAdmin, (req, res) => {
+  deleteScore.run(parseInt(req.params.id));
+  res.json({ success: true });
+});
+
+app.delete("/api/players/all", requireAdmin, (req, res) => {
+  deleteAllPlayers.run();
+  res.json({ success: true });
+});
+
+app.put("/api/players/:id", requireAdmin, (req, res) => {
+  const { grade, class: cls, student_number, name } = req.body;
+  if (!grade || !cls || !student_number || !name) {
+    return res.status(400).json({ error: "所有欄位皆為必填" });
+  }
+  try {
+    updatePlayer.run({
+      id: parseInt(req.params.id),
+      grade: parseInt(grade),
+      class: cls,
+      student_number,
+      name,
+    });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: "更新失敗：" + err.message });
+  }
+});
+
+app.put("/api/scores/:id", requireAdmin, (req, res) => {
+  const { completion_rate, max_combo, perfect_count } = req.body;
+  try {
+    updateScore.run({
+      id: parseInt(req.params.id),
+      completion_rate: parseFloat(completion_rate) || 0,
+      max_combo: parseInt(max_combo) || 0,
+      perfect_count: parseInt(perfect_count) || 0,
+    });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(400).json({ error: "更新失敗：" + err.message });
+  }
 });
 
 const clientDist = path.join(__dirname, "..", "client", "dist");
