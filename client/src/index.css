@@ -9,11 +9,20 @@
 }
 
 body {
-  background: #06060e;
   color: #e0e0e0;
-  font-family: "Share Tech Mono", monospace;
   overflow-x: hidden;
   min-height: 100vh;
+  transition: background-color 0.5s ease, color 0.5s ease, font-family 0.5s ease;
+}
+
+[data-theme="cyberpunk"] body {
+  background: #06060e;
+  font-family: "Share Tech Mono", monospace;
+}
+
+[data-theme="miku"] body {
+  background: #0a1628;
+  font-family: "M PLUS Rounded 1c", sans-serif;
 }
 
 @layer utilities {
@@ -31,11 +40,35 @@ body {
   }
 }
 
+[data-theme="miku"] .text-glow-cyan {
+  text-shadow: 0 0 7px #39c5bb, 0 0 14px #39c5bb, 0 0 28px #39c5bb;
+}
+[data-theme="miku"] .text-glow-magenta {
+  text-shadow: 0 0 7px #ff69b4, 0 0 14px #ff69b4, 0 0 28px #ff69b4;
+}
+[data-theme="miku"] .text-glow-green {
+  text-shadow: 0 0 7px #39c5bb, 0 0 14px #39c5bb, 0 0 28px #39c5bb;
+}
+[data-theme="miku"] .text-glow-yellow {
+  text-shadow: 0 0 7px #ffb6c1, 0 0 14px #ffb6c1, 0 0 28px #ffb6c1;
+}
+
 @keyframes rainbow-glow {
   0% { text-shadow: 0 0 7px #ff00ff, 0 0 14px #ff00ff, 0 0 28px #ff00ff; }
   33% { text-shadow: 0 0 7px #00ffff, 0 0 14px #00ffff, 0 0 28px #00ffff; }
   66% { text-shadow: 0 0 7px #39ff14, 0 0 14px #39ff14, 0 0 28px #39ff14; }
   100% { text-shadow: 0 0 7px #ff00ff, 0 0 14px #ff00ff, 0 0 28px #ff00ff; }
+}
+
+[data-theme="miku"] .title-glow {
+  animation: miku-glow 4s ease-in-out infinite;
+}
+
+@keyframes miku-glow {
+  0% { text-shadow: 0 0 7px #ff69b4, 0 0 14px #ff69b4, 0 0 28px #ff69b4; }
+  33% { text-shadow: 0 0 7px #39c5bb, 0 0 14px #39c5bb, 0 0 28px #39c5bb; }
+  66% { text-shadow: 0 0 7px #00e5e5, 0 0 14px #00e5e5, 0 0 28px #00e5e5; }
+  100% { text-shadow: 0 0 7px #ff69b4, 0 0 14px #ff69b4, 0 0 28px #ff69b4; }
 }
 
 .title-glow {
@@ -48,12 +81,22 @@ body {
 ::-webkit-scrollbar-track {
   background: #0d0d1f;
 }
+[data-theme="miku"] ::-webkit-scrollbar-track {
+  background: #0d1f3c;
+}
 ::-webkit-scrollbar-thumb {
   background: #00ffff;
   border-radius: 3px;
 }
+[data-theme="miku"] ::-webkit-scrollbar-thumb {
+  background: #39c5bb;
+  border-radius: 6px;
+}
 ::-webkit-scrollbar-thumb:hover {
   background: #ff00ff;
+}
+[data-theme="miku"] ::-webkit-scrollbar-thumb:hover {
+  background: #ff69b4;
 }
 
 input[type="number"]::-webkit-inner-spin-button,

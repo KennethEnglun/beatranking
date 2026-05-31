@@ -5,6 +5,7 @@ import AdminLogin from "./components/AdminLogin";
 import AdminPanel from "./components/AdminPanel";
 import AnimatedBackground from "./components/AnimatedBackground";
 import ColorfulText from "./components/ColorfulText";
+import { useTheme } from "./lib/ThemeContext";
 import { checkAuth, adminLogout } from "./lib/api";
 
 const pageVariants = {
@@ -13,13 +14,15 @@ const pageVariants = {
   exit: { opacity: 0, y: -20, scale: 0.98, transition: { duration: 0.25 } },
 };
 
-const btnHover = { scale: 1.05, transition: { duration: 0.2 } };
-const btnTap = { scale: 0.95 };
-
 export default function App() {
   const [view, setView] = useState("leaderboard");
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { theme, toggle, t } = useTheme();
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
 
   useEffect(() => {
     checkAuth()
@@ -36,11 +39,11 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-cyber-bg flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: t.bg }}>
         <motion.div
           animate={{ opacity: [0.4, 1, 0.4], scale: [0.98, 1.02, 0.98] }}
           transition={{ repeat: Infinity, duration: 1.5 }}
-          className="text-neon-cyan text-2xl font-game"
+          className="text-2xl font-game" style={{ color: t.primary }}
         >
           載入中...
         </motion.div>
@@ -49,14 +52,15 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-cyber-bg relative">
+    <div className="min-h-screen relative" style={{ background: t.bg, fontFamily: t.font }}>
       <AnimatedBackground />
 
       <motion.header
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 100, damping: 15 }}
-        className="relative z-10 border-b border-cyber-border bg-cyber-card/80 backdrop-blur-sm"
+        className="relative z-10 backdrop-blur-sm"
+        style={{ borderBottom: `1px solid ${t.border}`, background: t.headerBg }}
       >
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <motion.h1
@@ -67,26 +71,33 @@ export default function App() {
           >
             <ColorfulText text="李炳摘星之勁Beat大賽排行榜" />
           </motion.h1>
-          <div className="flex gap-2">
-            <NavBtn active={view === "leaderboard"} color="cyan" onClick={() => setView("leaderboard")}>
+          <div className="flex items-center gap-2">
+            <ThemeToggleBtn theme={theme} onToggle={toggle} t={t} />
+            <NavBtn active={view === "leaderboard"} color="primary" t={t} onClick={() => setView("leaderboard")}>
               排行榜
             </NavBtn>
             {isAdmin ? (
               <>
-                <NavBtn active={view === "admin"} color="magenta" onClick={() => setView("admin")}>
+                <NavBtn active={view === "admin"} color="secondary" t={t} onClick={() => setView("admin")}>
                   管理面板
                 </NavBtn>
                 <motion.button
-                  whileHover={{ scale: 1.05, boxShadow: "0 0 12px rgba(255,50,50,0.3)" }}
+                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleLogout}
-                  className="px-3 py-1.5 rounded text-xs font-game border border-red-500/50 text-red-400 hover:text-red-300 transition-colors"
+                  className="px-3 py-1.5 rounded text-xs border transition-colors"
+                  style={{
+                    fontFamily: t.titleFont,
+                    borderColor: "rgba(255,50,50,0.5)",
+                    color: "#ff6666",
+                    borderRadius: t.borderRadius,
+                  }}
                 >
                   登出
                 </motion.button>
               </>
             ) : (
-              <NavBtn active={view === "admin"} color="magenta" onClick={() => setView("admin")}>
+              <NavBtn active={view === "admin"} color="secondary" t={t} onClick={() => setView("admin")}>
                 管理員
               </NavBtn>
             )}
@@ -96,20 +107,10 @@ export default function App() {
 
       <main className="relative z-10">
         <AnimatePresence mode="wait">
-          <motion.div
-            key={view}
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-          >
+          <motion.div key={view} variants={pageVariants} initial="initial" animate="animate" exit="exit">
             {view === "leaderboard" && <Leaderboard />}
             {view === "admin" && (
-              isAdmin ? (
-                <AdminPanel onLogout={handleLogout} />
-              ) : (
-                <AdminLogin onLogin={() => { setIsAdmin(true); setView("admin"); }} />
-              )
+              isAdmin ? <AdminPanel onLogout={handleLogout} /> : <AdminLogin onLogin={() => { setIsAdmin(true); setView("admin"); }} />
             )}
           </motion.div>
         </AnimatePresence>
@@ -119,31 +120,61 @@ export default function App() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="relative z-10 border-t border-cyber-border py-3 text-center text-gray-600 text-xs"
+        className="relative z-10 py-3 text-center text-xs"
+        style={{ borderTop: `1px solid ${t.border}`, color: t.muted }}
       >
-        <motion.span animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 3 }} className="text-neon-cyan/50">◆</motion.span>
+        <motion.span animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 3 }} style={{ color: t.primary }}>
+          {theme === "miku" ? "♪" : "◆"}
+        </motion.span>
         {" "}李炳摘星之勁Beat大賽排行榜{" "}
-        <motion.span animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 3, delay: 1 }} className="text-neon-magenta/50">◆</motion.span>
+        <motion.span animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 3, delay: 1 }} style={{ color: t.secondary }}>
+          {theme === "miku" ? "♫" : "◆"}
+        </motion.span>
       </motion.footer>
     </div>
   );
 }
 
-function NavBtn({ active, color, onClick, children }) {
-  const colorMap = {
-    cyan: { border: "border-neon-cyan", text: "text-neon-cyan", glow: "0 0 12px rgba(0,255,255,0.3)" },
-    magenta: { border: "border-neon-magenta", text: "text-neon-magenta", glow: "0 0 12px rgba(255,0,255,0.3)" },
-  };
-  const c = colorMap[color];
+function ThemeToggleBtn({ theme, onToggle, t }) {
   return (
     <motion.button
-      whileHover={btnHover}
-      whileTap={btnTap}
+      whileHover={{ scale: 1.1, rotate: 15 }}
+      whileTap={{ scale: 0.9, rotate: -15 }}
+      onClick={onToggle}
+      className="px-2 py-1.5 rounded text-xs border transition-colors font-game"
+      style={{
+        borderColor: theme === "miku" ? "#39c5bb" : t.border,
+        color: theme === "miku" ? "#39c5bb" : t.muted,
+        background: theme === "miku" ? "rgba(57,197,187,0.08)" : "transparent",
+        borderRadius: t.borderRadius,
+        boxShadow: theme === "miku" ? "0 0 10px rgba(57,197,187,0.2)" : "none",
+      }}
+      title={theme === "cyberpunk" ? "切換到初音風格" : "切換到螢光風格"}
+    >
+      {theme === "cyberpunk" ? "🌸" : "💜"}
+    </motion.button>
+  );
+}
+
+function NavBtn({ active, color, t, onClick, children }) {
+  const c = {
+    primary: { border: color === "primary" ? t.primary : t.border, text: t.primary, glow: t.primary },
+    secondary: { border: color === "secondary" ? t.secondary : t.border, text: t.secondary, glow: t.secondary },
+  };
+  const style = c[color] || c.primary;
+  return (
+    <motion.button
+      whileHover={{ scale: 1.05, y: -1 }}
+      whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className={`px-4 py-1.5 rounded text-xs font-game border transition-colors ${
-        active ? `${c.border} ${c.text}` : "border-cyber-border text-gray-500 hover:text-gray-400"
-      }`}
-      style={active ? { boxShadow: c.glow } : {}}
+      className="px-4 py-1.5 rounded text-xs border transition-colors"
+      style={{
+        borderColor: active ? style.border : t.border,
+        color: active ? style.text : t.muted,
+        fontFamily: t.titleFont,
+        borderRadius: t.borderRadius,
+        boxShadow: active ? `0 0 12px ${style.glow}40` : "none",
+      }}
     >
       {children}
     </motion.button>
