@@ -211,6 +211,11 @@ app.get("/api/players/export-csv", requireAdmin, (req, res) => {
   res.send("\uFEFF" + payload);
 });
 
+app.delete("/api/players/all", requireAdmin, (req, res) => {
+  deleteAllPlayers.run();
+  res.json({ success: true });
+});
+
 app.delete("/api/players/:id", requireAdmin, (req, res) => {
   deletePlayer.run(parseInt(req.params.id));
   res.json({ success: true });
@@ -223,11 +228,6 @@ app.delete("/api/scores/all", requireAdmin, (req, res) => {
 
 app.delete("/api/scores/:id", requireAdmin, (req, res) => {
   deleteScore.run(parseInt(req.params.id));
-  res.json({ success: true });
-});
-
-app.delete("/api/players/all", requireAdmin, (req, res) => {
-  deleteAllPlayers.run();
   res.json({ success: true });
 });
 
