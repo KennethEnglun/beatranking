@@ -1,7 +1,15 @@
 import { useRef, useEffect } from "react";
 import gsap from "gsap";
 
-export default function RollingNumber({ value, duration = 0.8, className = "" }) {
+function formatNumber(val, decimals) {
+  if (decimals > 0) {
+    const fixed = val.toFixed(decimals);
+    return fixed.includes(".") ? fixed.replace(/\.?0+$/, "") : fixed;
+  }
+  return Math.round(val).toString();
+}
+
+export default function RollingNumber({ value, duration = 0.8, decimals = 0, className = "" }) {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -10,10 +18,9 @@ export default function RollingNumber({ value, duration = 0.8, className = "" })
       val: value,
       duration,
       ease: "power2.out",
-      snap: { val: 1 },
-      onUpdate: () => { if (ref.current) ref.current.innerText = Math.round(obj.val); },
+      onUpdate: () => { if (ref.current) ref.current.innerText = formatNumber(obj.val, decimals); },
     });
-  }, [value, duration]);
+  }, [value, duration, decimals]);
 
-  return <span ref={ref} className={className}>{value}</span>;
+  return <span ref={ref} className={className}>{formatNumber(value, decimals)}</span>;
 }

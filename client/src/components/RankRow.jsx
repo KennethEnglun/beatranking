@@ -56,7 +56,7 @@ export default function RankRow({ row, index, prevData, groupColor }) {
       <div className="text-center text-xs flex items-center justify-center" style={{ color: t.muted }}>{row.grade}{row.class}</div>
       <div className="text-center flex items-center justify-center">
         <motion.span key={`${row.id}-${row.completion_rate}`} initial={scoreChanged ? { scale: 1.3, color: "#39ff14" } : false} animate={{ scale: 1, color: row.completion_rate >= 90 ? "#39ff14" : row.completion_rate >= 70 ? "#ffff00" : t.text }} transition={{ type: "spring", stiffness: 200 }} className="font-mono text-sm">
-          <RollingNumber value={row.completion_rate} />%
+          <RollingNumber value={row.completion_rate} decimals={2} />%
         </motion.span>
       </div>
       <div className="text-center flex items-center justify-center">
