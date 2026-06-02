@@ -5,6 +5,8 @@ import AdminLogin from "./components/AdminLogin";
 import AdminPanel from "./components/AdminPanel";
 import AnimatedBackground from "./components/AnimatedBackground";
 import ColorfulText from "./components/ColorfulText";
+import GlitchText from "./components/GlitchText";
+import MagneticBtn from "./components/MagneticBtn";
 import { useTheme } from "./lib/ThemeContext";
 import { checkAuth, adminLogout } from "./lib/api";
 
@@ -69,18 +71,24 @@ export default function App() {
             className="font-game text-sm sm:text-lg cursor-pointer"
             onClick={() => setView("leaderboard")}
           >
-            <ColorfulText text="李炳摘星之勁Beat大賽排行榜" />
+            <GlitchText><ColorfulText text="李炳摘星之勁Beat大賽排行榜" /></GlitchText>
           </motion.h1>
           <div className="flex items-center gap-2">
-            <ThemeToggleBtn theme={theme} onToggle={toggle} t={t} />
-            <NavBtn active={view === "leaderboard"} color="primary" t={t} onClick={() => setView("leaderboard")}>
-              排行榜
-            </NavBtn>
+            <MagneticBtn>
+              <ThemeToggleBtn theme={theme} onToggle={toggle} t={t} />
+            </MagneticBtn>
+            <MagneticBtn>
+              <NavBtn active={view === "leaderboard"} color="primary" t={t} onClick={() => setView("leaderboard")}>
+                排行榜
+              </NavBtn>
+            </MagneticBtn>
             {isAdmin ? (
               <>
-                <NavBtn active={view === "admin"} color="secondary" t={t} onClick={() => setView("admin")}>
-                  管理面板
-                </NavBtn>
+                <MagneticBtn>
+                  <NavBtn active={view === "admin"} color="secondary" t={t} onClick={() => setView("admin")}>
+                    管理面板
+                  </NavBtn>
+                </MagneticBtn>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -97,9 +105,11 @@ export default function App() {
                 </motion.button>
               </>
             ) : (
-              <NavBtn active={view === "admin"} color="secondary" t={t} onClick={() => setView("admin")}>
-                管理員
-              </NavBtn>
+              <MagneticBtn>
+                <NavBtn active={view === "admin"} color="secondary" t={t} onClick={() => setView("admin")}>
+                  管理員
+                </NavBtn>
+              </MagneticBtn>
             )}
           </div>
         </div>

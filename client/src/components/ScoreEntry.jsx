@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchAllPlayers, fetchBestScore, saveScore, analyzeScoreImage } from "../lib/api";
 import { useTheme } from "../lib/ThemeContext";
+import ConfettiEffect from "./ConfettiEffect";
 
 const GRADES = ["1", "2", "3", "4", "5", "6"];
 
@@ -38,6 +39,7 @@ export default function ScoreEntry() {
   const [perfectCount, setPerfectCount] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
+  const [showConfetti, setShowConfetti] = useState(false);
   const [bestScore, setBestScore] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -119,6 +121,8 @@ export default function ScoreEntry() {
     try {
       await saveScore(targetId, parseFloat(completionRate) || 0, parseInt(maxCombo) || 0, parseInt(perfectCount) || 0);
       setMessage({ type: "success", text: `✅ ${selectedPlayer.name} 分數已儲存！` });
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 2500);
       clearPlayers();
     } catch (err) {
       setMessage({ type: "error", text: `❌ ${err.message || "儲存失敗，請重試"}` });
@@ -306,6 +310,8 @@ export default function ScoreEntry() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {showConfetti && <ConfettiEffect onComplete={() => setShowConfetti(false)} />}
     </motion.div>
   );
 }
